@@ -1,6 +1,5 @@
-
 export async function onRequest(context) {
-  const { request, env } = context;
+  const { request } = context;
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
 
@@ -15,10 +14,8 @@ export async function onRequest(context) {
       "Accept": "application/json",
     },
     body: JSON.stringify({
-      client_id: env.GH_ID,
-      client_secret: "secretul_complet_40_caractere",
-,
- ,
+      client_id: "Ov23li4qQxkZ2GfqNazW",
+      client_secret: "c076b22fe071427975059e2fb160c933a8f778ee",
       code: code,
     }),
   });
@@ -29,10 +26,8 @@ export async function onRequest(context) {
     return new Response(`Auth error: ${JSON.stringify(tokenData)}`, { status: 400 });
   }
 
-  const accessToken = tokenData.access_token;
-
   return Response.redirect(
-    `https://airuneai.com/?token=${accessToken}`,
+    `https://airuneai.com/?token=${tokenData.access_token}`,
     302
   );
 }
