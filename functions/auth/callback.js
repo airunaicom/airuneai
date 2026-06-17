@@ -15,7 +15,7 @@ export async function onRequest(context) {
     },
     body: JSON.stringify({
       client_id: "Ov23li4qQxkZ2GfqNazW",
-      client_secret: "env.GH_SECRET",
+      client_secret: "1f5dadfe610a76557ea0aae3d9cc1098b48d47c1",
       code: code,
     }),
   });
