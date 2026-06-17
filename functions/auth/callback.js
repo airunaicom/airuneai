@@ -4,7 +4,8 @@ export async function onRequest(context) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return new Response("Missing code", { status: 400 });
+    return new Response(`GH_ID: ${env.GH_ID}, secret length: ${env.GH_SECRET?.length}`, { status: 200 });
+
   }
 
   // Schimbă codul cu un token de acces
