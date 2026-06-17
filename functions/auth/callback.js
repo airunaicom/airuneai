@@ -16,7 +16,8 @@ export async function onRequest(context) {
     },
     body: JSON.stringify({
       client_id: env.GH_ID,
-      client_secret: "c076b22fe071427975059e2fb160c933a8f778ee",
+      client_secret: "secretul_complet_40_caractere",
+,
  ,
       code: code,
     }),
