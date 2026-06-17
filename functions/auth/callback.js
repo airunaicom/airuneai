@@ -24,7 +24,8 @@ export async function onRequest(context) {
   const tokenData = await tokenResponse.json();
 
   if (tokenData.error) {
-    return new Response(`Auth error: ${tokenData.error_description}`, { status: 400 });
+    ;return new Response(`Auth error: ${JSON.stringify(tokenData)}`, { status: 400 });
+
   }
 
   const accessToken = tokenData.access_token;
