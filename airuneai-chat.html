@@ -31,14 +31,12 @@
       overflow: hidden;
     }
 
-    /* ── LAYOUT ── */
     .app {
       display: flex;
       height: 100vh;
       position: relative;
     }
 
-    /* ── SIDEBAR ── */
     .sidebar {
       width: 260px;
       background: var(--panel);
@@ -124,34 +122,6 @@
       border-top: 1px solid var(--border);
     }
 
-    .api-key-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .api-key-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--gold-dim);
-    }
-
-    .api-key-input {
-      background: var(--deep);
-      border: 1px solid var(--border);
-      padding: 0.5rem 0.7rem;
-      color: var(--white);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.72rem;
-      outline: none;
-      width: 100%;
-      transition: border-color 0.2s;
-    }
-    .api-key-input:focus { border-color: var(--gold-dim); }
-    .api-key-input::placeholder { color: var(--gold-dim); opacity: 0.5; }
-
-    /* ── MAIN CHAT ── */
     .main {
       flex: 1;
       display: flex;
@@ -160,7 +130,6 @@
       position: relative;
     }
 
-    /* Ambient background */
     .main::before {
       content: '';
       position: absolute;
@@ -174,7 +143,6 @@
       z-index: 0;
     }
 
-    /* ── CHAT HEADER ── */
     .chat-header {
       position: relative;
       z-index: 1;
@@ -215,7 +183,6 @@
       50% { opacity: 0.3; }
     }
 
-    /* ── MESSAGES ── */
     .messages {
       flex: 1;
       overflow-y: auto;
@@ -232,7 +199,6 @@
     .messages::-webkit-scrollbar-track { background: transparent; }
     .messages::-webkit-scrollbar-thumb { background: var(--gold-dim); }
 
-    /* ── WELCOME ── */
     .welcome {
       display: flex;
       flex-direction: column;
@@ -292,7 +258,6 @@
       background: var(--gold-glow);
     }
 
-    /* ── MESSAGE BUBBLES ── */
     .message {
       display: flex;
       gap: 1rem;
@@ -361,7 +326,6 @@
       color: var(--white);
     }
 
-    /* ── TYPING INDICATOR ── */
     .typing-indicator {
       display: flex;
       gap: 5px;
@@ -382,7 +346,6 @@
       50% { opacity: 1; transform: translateY(-4px); }
     }
 
-    /* ── INPUT AREA ── */
     .input-area {
       position: relative;
       z-index: 1;
@@ -439,7 +402,6 @@
       text-align: center;
     }
 
-    /* ── MOBILE ── */
     @media (max-width: 640px) {
       .sidebar { display: none; }
       .messages { padding: 1rem; }
@@ -455,37 +417,21 @@
 <body>
 <div class="app">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-text">AIRUNEAI</div>
       <div class="logo-sub">Ancient Intelligence</div>
     </div>
-
     <button class="new-chat-btn" onclick="newChat()">
       <span>✦</span> New Conversation
     </button>
-
     <div class="sidebar-history">
       <div class="history-label">Recent</div>
       <div id="historyList"></div>
     </div>
-
-    <div class="sidebar-footer">
-      <div class="api-key-wrap">
-        <label class="api-key-label" for="apiKey">Anthropic API Key</label>
-        <input
-          class="api-key-input"
-          type="password"
-          id="apiKey"
-          placeholder="sk-ant-..."
-          oninput="saveKey()"
-        />
-      </div>
-    </div>
+    <div class="sidebar-footer"></div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
     <div class="chat-header">
       <span class="chat-title">ᚱ Conversation</span>
@@ -496,7 +442,6 @@
     </div>
 
     <div class="messages" id="messages">
-      <!-- Welcome shown when no messages -->
       <div class="welcome" id="welcome">
         <div class="welcome-rune">ᚨ</div>
         <h2 class="welcome-title">What do you seek?</h2>
@@ -520,9 +465,7 @@
           onkeydown="handleKey(event)"
           oninput="autoResize(this)"
         ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
-          ᚱ
-        </button>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">ᚱ</button>
       </div>
       <p class="input-hint">Enter to send · Shift+Enter for new line</p>
     </div>
@@ -530,11 +473,12 @@
 </div>
 
 <script>
-  // ── STATE ──
   let messages = [];
   let isLoading = false;
   let sessions = JSON.parse(localStorage.getItem('airuneai_sessions') || '[]');
   let currentSession = null;
+
+  const WORKER_URL = 'https://airuneai-api.airunaicom.workers.dev';
 
   const SYSTEM_PROMPT = `You are AIRUNEAI — an ancient and powerful AI assistant with a premium, mysterious personality.
 
@@ -555,18 +499,8 @@ Style:
 
 Remember: You are not a chatbot. You are AIRUNEAI.`;
 
-  // ── INIT ──
-  window.onload = () => {
-    const saved = localStorage.getItem('airuneai_key');
-    if (saved) document.getElementById('apiKey').value = saved;
-    renderHistory();
-  };
+  window.onload = () => { renderHistory(); };
 
-  function saveKey() {
-    localStorage.setItem('airuneai_key', document.getElementById('apiKey').value);
-  }
-
-  // ── AUTO RESIZE TEXTAREA ──
   function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 140) + 'px';
@@ -579,19 +513,11 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
     }
   }
 
-  // ── SEND MESSAGE ──
   async function sendMessage(text) {
     const input = document.getElementById('chatInput');
     const content = text || input.value.trim();
     if (!content || isLoading) return;
 
-    const apiKey = document.getElementById('apiKey').value.trim();
-    if (!apiKey) {
-      appendMessage('assistant', 'Add your Anthropic API key in the sidebar to awaken me. ᚱ');
-      return;
-    }
-
-    // Hide welcome
     const welcome = document.getElementById('welcome');
     if (welcome) welcome.remove();
 
@@ -600,17 +526,15 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
       input.style.height = 'auto';
     }
 
-    // Add user message
     messages.push({ role: 'user', content });
     appendMessage('user', content);
 
-    // Show typing
     const typingEl = showTyping();
     isLoading = true;
     document.getElementById('sendBtn').disabled = true;
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -634,40 +558,31 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
       }
     } catch (err) {
       typingEl.remove();
-      appendMessage('assistant', 'The connection to the ancient realm was lost. Check your API key and try again.');
+      appendMessage('assistant', 'The connection to the ancient realm was lost. Try again.');
     }
 
     isLoading = false;
     document.getElementById('sendBtn').disabled = false;
   }
 
-  function sendSuggestion(btn) {
-    sendMessage(btn.textContent);
-  }
+  function sendSuggestion(btn) { sendMessage(btn.textContent); }
 
-  // ── DOM HELPERS ──
   function appendMessage(role, content) {
     const container = document.getElementById('messages');
     const isAI = role === 'assistant';
-
     const msg = document.createElement('div');
     msg.className = `message ${role}`;
-
     const avatar = document.createElement('div');
     avatar.className = `msg-avatar ${isAI ? 'ai' : 'user-av'}`;
     avatar.textContent = isAI ? 'ᚱ' : 'U';
-
     const body = document.createElement('div');
     body.className = 'msg-body';
-
     const sender = document.createElement('div');
     sender.className = 'msg-sender';
     sender.textContent = isAI ? 'AIRUNEAI' : 'You';
-
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
     bubble.textContent = content;
-
     body.appendChild(sender);
     body.appendChild(bubble);
     msg.appendChild(avatar);
@@ -680,23 +595,17 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
     const container = document.getElementById('messages');
     const wrap = document.createElement('div');
     wrap.className = 'message assistant';
-    wrap.id = 'typing';
-
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar ai';
     avatar.textContent = 'ᚱ';
-
     const body = document.createElement('div');
     body.className = 'msg-body';
-
     const sender = document.createElement('div');
     sender.className = 'msg-sender';
     sender.textContent = 'AIRUNEAI';
-
     const indicator = document.createElement('div');
     indicator.className = 'typing-indicator';
     indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-
     body.appendChild(sender);
     body.appendChild(indicator);
     wrap.appendChild(avatar);
@@ -706,7 +615,6 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
     return wrap;
   }
 
-  // ── SESSIONS ──
   function saveSession(firstMessage) {
     if (!currentSession) {
       currentSession = { id: Date.now(), title: firstMessage.slice(0, 40), messages };
@@ -743,8 +651,6 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
     messages = [];
     const container = document.getElementById('messages');
     container.innerHTML = '';
-
-    // Re-add welcome
     const welcome = document.createElement('div');
     welcome.className = 'welcome';
     welcome.id = 'welcome';
@@ -757,8 +663,7 @@ Remember: You are not a chatbot. You are AIRUNEAI.`;
         <button class="suggestion" onclick="sendSuggestion(this)">Write something powerful for me</button>
         <button class="suggestion" onclick="sendSuggestion(this)">Explain something complex, simply</button>
         <button class="suggestion" onclick="sendSuggestion(this)">What should I focus on today?</button>
-      </div>
-    `;
+      </div>`;
     container.appendChild(welcome);
     renderHistory();
   }
